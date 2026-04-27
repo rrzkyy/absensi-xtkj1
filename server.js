@@ -217,7 +217,6 @@ app.get('/api/students', (req, res) => {
     const students = getAll("SELECT * FROM students");
     res.json(students);
 });
-
 // Add new student
 app.post('/api/students', (req, res) => {
     const { name, nis, class: studentClass } = req.body;
