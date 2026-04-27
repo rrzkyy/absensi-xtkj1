@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: absensi-xtkj1
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    plan: free
+    region: singapore
+    branch: master
+    autoDeploy: true
+    rootDir: .
