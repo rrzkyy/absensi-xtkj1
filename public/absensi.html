@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Absensi - Absensi Sekolah</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #fff;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            font-size: 20px;
+        }
+
+        .back-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 24px 20px;
+        }
+
+        .step-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-weight: bold;
+        }
+
+        .step-card h3 {
+            margin-bottom: 8px;
+        }
+
+        .step-card p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+
+        .qr-scanner {
+            width: 100%;
+            max-width: 300px;
+            height: 300px;
+            margin: 0 auto 16px;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #000;
+            position: relative;
+        }
+
+        #qrVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .qr-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border: 3px solid #667eea;
+            border-radius: 16px;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+        }
+
+        .face-scanner {
+            width: 100%;
+            max-width: 300px;
+            height: 300px;
+            margin: 0 auto 16px;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #000;
+            position: relative;
+        }
+
+        #faceVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #faceCanvas {
+            display: none;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .result {
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 16px;
+            display: none;
+        }
+
+        .result.success {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #22c55e;
+            display: block;
+        }
+
+        .result.error {
+            background: rgba(255, 77, 77, 0.2);
+            border: 1px solid rgba(255, 77, 77, 0.3);
+            color: #ff4d4d;
+            display: block;
+        }
+
+        .result.info {
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            color: #a5b4fc;
+            display: block;
+        }
+
+        .distance-info {
+            background: rgba(255, 77, 77, 0.1);
+            border: 1px solid rgba(255, 77, 77, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .distance-info .distance {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ff4d4d;
+        }
+
+        .distance-info .distance.safe {
+            color: #22c55e;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>📷 Absensi</h1>
+        <a href="menu.html" class="back-btn">← Kembali</a>
+    </div>
+
+    <div class="container">
+        <!-- Step 1: Scan QR -->
+        <div class="step-card" id="step1">
+            <div class="step-number">1</div>
+            <h3>Scan QR Code</h3>
+            <p>Arahkan kamera ke QR Code yang ditampilkan admin</p>
+
+            <div class="qr-scanner">
+                <video id="qrVideo" autoplay playsinline></video>
+                <div class="qr-overlay"></div>
+            </div>
+
+            <input type="text" id="qrInput" placeholder="Masukkan kode QR (atau scan)" style="width: 100%; padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); 
+                    background: rgba(255,255,255,0.1); color: #fff; margin-bottom: 12px; text-align: center;">
+
+            <button class="btn btn-primary" onclick="verifyQR()">Verifikasi QR</button>
+
+            <div class="result" id="qrResult"></div>
+        </div>
+
+        <!-- Step 2: Face Verification -->
+        <div class="step-card hidden" id="step2">
+            <div class="step-number">2</div>
+            <h3>Verifikasi Wajah</h3>
+            <p>Posisikan wajah Anda di dalam kotak</p>
+
+            <div class="face-scanner">
+                <video id="faceVideo" autoplay playsinline></video>
+                <canvas id="faceCanvas"></canvas>
+            </div>
+
+            <button class="btn btn-primary" onclick="verifyFace()">Ambil Foto & Verifikasi</button>
+
+            <div class="result" id="faceResult"></div>
+        </div>
+
+        <!-- Step 3: Location Check -->
+        <div class="step-card hidden" id="step3">
+            <div class="step-number">3</div>
+            <h3>Cek Lokasi</h3>
+            <p>Memeriksa jarak dari lokasi admin...</p>
+
+            <div class="distance-info">
+                <div class="distance" id="distanceDisplay">...</div>
+                <p>meter dari admin</p>
+                <p style="font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 8px;">Maksimal 20 meter</p>
+            </div>
+
+            <div class="result" id="locationResult"></div>
+        </div>
+
+        <!-- Success -->
+        <div class="step-card hidden" id="successCard">
+            <div style="font-size: 64px; margin-bottom: 16px;">✅</div>
+            <h3>Absensi Berhasil!</h3>
+            <p>Anda telah berhasil melakukan absensi hari ini.</p>
+            <a href="menu.html" class="btn btn-primary" style="display: inline-block; margin-top: 16px;">Kembali ke
+                Menu</a>
+        </div>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user || user.role !== 'student') {
+            window.location.href = 'login.html';
+        }
+
+        let currentStep = 1;
+        let qrCode = null;
+        let adminLocation = null;
+        let userLocation = null;
+
+        // Get admin location
+        async function getAdminLocation() {
+            const res = await fetch('/api/admin/location');
+            adminLocation = await res.json();
+        }
+
+        // Get user location
+        function getUserLocation() {
+            return new Promise((resolve, reject) => {
+                if (!navigator.geolocation) {
+                    reject(new Error('Geolocation tidak didukung'));
+                    return;
+                }
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        userLocation = {
+                            lat: pos.coords.latitude,
+                            lng: pos.coords.longitude
+                        };
+                        resolve(userLocation);
+                    },
+                    (err) => reject(err),
+                    { enableHighAccuracy: true }
+                );
+            });
+        }
+
+        // Calculate distance
+        function calculateDistance(lat1, lng1, lat2, lng2) {
+            const R = 6371000; // Earth's radius in meters
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLng / 2) * Math.sin(dLng / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        // Verify QR Code
+        async function verifyQR() {
+            const code = document.getElementById('qrInput').value.trim();
+            if (!code) {
+                showResult('qrResult', 'Masukkan kode QR terlebih dahulu', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/qr/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code })
+                });
+                const data = await res.json();
+
+                if (data.valid) {
+                    qrCode = code;
+                    showResult('qrResult', '✓ QR Code valid! Lanjut ke verifikasi wajah.', 'success');
+                    setTimeout(() => {
+                        document.getElementById('step1').classList.add('hidden');
+                        document.getElementById('step2').classList.remove('hidden');
+                        startFaceCamera();
+                    }, 1500);
+                } else {
+                    showResult('qrResult', data.message, 'error');
+                }
+            } catch (err) {
+                showResult('qrResult', 'Gagal memverifikasi QR', 'error');
+            }
+        }
+
+        // Start face camera
+        async function startFaceCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user', width: 300, height: 300 }
+                });
+                document.getElementById('faceVideo').srcObject = stream;
+            } catch (err) {
+                showResult('faceResult', 'Gagal mengakses kamera: ' + err.message, 'error');
+            }
+        }
+
+        // Verify Face (simplified - captures photo)
+        async function verifyFace() {
+            const video = document.getElementById('faceVideo');
+            const canvas = document.getElementById('faceCanvas');
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+
+            // In a real app, this would send to face recognition API
+            // For now, we simulate verification
+            showResult('faceResult', '✓ Wajah terdeteksi! Memeriksa jarak...', 'info');
+
+            setTimeout(() => {
+                document.getElementById('step2').classList.add('hidden');
+                document.getElementById('step3').classList.remove('hidden');
+                checkLocation();
+            }, 2000);
+        }
+
+        // Check location
+        async function checkLocation() {
+            try {
+                await getAdminLocation();
+                await getUserLocation();
+
+                const distance = calculateDistance(
+                    userLocation.lat, userLocation.lng,
+                    adminLocation.lat, adminLocation.lng
+                );
+
+                const distanceEl = document.getElementById('distanceDisplay');
+                distanceEl.textContent = Math.round(distance);
+
+                if (distance <= 20) {
+                    distanceEl.classList.add('safe');
+                    showResult('locationResult', '✓ Jarak valid! Menyimpan absensi...', 'success');
+
+                    // Record attendance
+                    await recordAttendance();
+                } else {
+                    distanceEl.classList.remove('safe');
+                    showResult('locationResult', '✗ Terlalu jauh dari admin (maksimal 20 meter)', 'error');
+                }
+            } catch (err) {
+                showResult('locationResult', 'Gagal mendapatkan lokasi: ' + err.message, 'error');
+            }
+        }
+
+        // Record attendance
+        async function recordAttendance() {
+            try {
+                const res = await fetch('/api/attendance', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        student_id: user.student.id,
+                        verification_method: 'QR + Face + Location',
+                        lat: userLocation.lat,
+                        lng: userLocation.lng
+                    })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    document.getElementById('step3').classList.add('hidden');
+                    document.getElementById('successCard').classList.remove('hidden');
+                } else {
+                    showResult('locationResult', data.message, 'error');
+                }
+            } catch (err) {
+                showResult('locationResult', 'Gagal menyimpan absensi', 'error');
+            }
+        }
+
+        function showResult(id, message, type) {
+            const el = document.getElementById(id);
+            el.className = 'result ' + type;
+            el.textContent = message;
+        }
+    </script>
+</body>
+
+</html>

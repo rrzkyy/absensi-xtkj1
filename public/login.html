@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Absensi Sekolah</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 48px;
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo h1 {
+            color: #fff;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .logo p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+
+        .role-switch {
+            display: flex;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 24px;
+        }
+
+        .role-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .role-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 18px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .error {
+            background: rgba(255, 77, 77, 0.2);
+            border: 1px solid rgba(255, 77, 77, 0.3);
+            color: #ff4d4d;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <h1>🖇️ Absensi Sekolah</h1>
+            <p>Sistem Absensi Digital</p>
+        </div>
+
+        <div class="role-switch">
+            <button class="role-btn active" data-role="student" onclick="setRole('student')">Siswa</button>
+            <button class="role-btn" data-role="admin" onclick="setRole('admin')">Admin</button>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label id="usernameLabel">NIS</label>
+                <input type="text" id="username" placeholder="Masukkan NIS" required>
+            </div>
+            <div class="form-group">
+                <label id="passwordLabel">Nama Lengkap</label>
+                <input type="text" id="password" placeholder="Masukkan nama lengkap" required>
+            </div>
+            <button type="submit" class="login-btn">Masuk</button>
+        </form>
+    </div>
+
+    <script>
+        let currentRole = 'student';
+
+        function setRole(role) {
+            currentRole = role;
+            document.querySelectorAll('.role-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.role === role);
+            });
+            document.getElementById('usernameLabel').textContent = role === 'admin' ? 'Username' : 'NIS';
+            document.getElementById('passwordLabel').textContent = role === 'admin' ? 'Password' : 'Nama Lengkap';
+            document.getElementById('username').placeholder = role === 'admin' ? 'Masukkan username' : 'Masukkan NIS';
+            document.getElementById('password').placeholder = role === 'admin' ? 'Masukkan password' : 'Masukkan nama lengkap';
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorEl = document.getElementById('error');
+
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, role: currentRole })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    localStorage.setItem('user', JSON.stringify(data));
+                    if (data.role === 'admin') {
+                        window.location.href = 'admin.html';
+                    } else {
+                        window.location.href = 'menu.html';
+                    }
+                } else {
+                    errorEl.textContent = data.message;
+                    errorEl.classList.add('show');
+                }
+            } catch (err) {
+                errorEl.textContent = 'Terjadi kesalahan. Pastikan server berjalan.';
+                errorEl.classList.add('show');
+            }
+        });
+    </script>
+</body>
+
+</html>

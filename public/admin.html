@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - Absensi Sekolah</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #fff;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            font-size: 20px;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: rgba(255, 77, 77, 0.2);
+            border: 1px solid rgba(255, 77, 77, 0.3);
+            color: #ff4d4d;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-card h4 {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .stat-card .value.green {
+            color: #22c55e;
+        }
+
+        .stat-card .value.blue {
+            color: #667eea;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .section h3 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .qr-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .qr-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .qr-display {
+            text-align: center;
+            padding: 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+        }
+
+        .qr-display img {
+            max-width: 250px;
+            margin: 16px auto;
+            border-radius: 12px;
+        }
+
+        .qr-code-text {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            word-break: break-all;
+            margin: 12px 0;
+        }
+
+        .qr-timer {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .btn-danger {
+            background: rgba(255, 77, 77, 0.2);
+            color: #ff4d4d;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .attendance-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .attendance-table th,
+        .attendance-table td {
+            padding: 14px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .attendance-table th {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .attendance-table tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .student-photo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            vertical-align: middle;
+        }
+
+        .schedule-edit {
+            margin-top: 16px;
+        }
+
+        .schedule-row {
+            display: grid;
+            grid-template-columns: 100px 100px 1fr 1fr 80px;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .schedule-row input,
+        .schedule-row select {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+
+        .schedule-row input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .location-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .location-input {
+            padding: 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+
+        .location-btn {
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border: none;
+            border-radius: 10px;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>🖇️ Dashboard Admin</h1>
+        <a href="login.html" class="logout-btn">Keluar</a>
+    </div>
+
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h4>Siswa Hadir Hari Ini</h4>
+                <div class="value green" id="presentCount">0</div>
+            </div>
+            <div class="stat-card">
+                <h4>Total Siswa</h4>
+                <div class="value blue" id="totalCount">0</div>
+            </div>
+            <div class="stat-card">
+                <h4>Jam Sekarang</h4>
+                <div class="value" id="currentTime">--:--</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('attendance')">📋 Absensi Hari Ini</button>
+            <button class="tab" onclick="showTab('students')">👥 Kelola Siswa</button>
+            <button class="tab" onclick="showTab('qr')">📱 Generate QR</button>
+            <button class="tab" onclick="showTab('schedule')">📅 Kelola Jadwal</button>
+            <button class="tab" onclick="showTab('location')">📍 Lokasi Admin</button>
+        </div>
+
+        <!-- Attendance Tab -->
+        <div class="section" id="tab-attendance">
+            <h3>📋 Absensi Hari Ini</h3>
+            <table class="attendance-table">
+                <thead>
+                    <tr>
+                        <th>Siswa</th>
+                        <th>Kelas</th>
+                        <th>Jam Masuk</th>
+                        <th>Metode</th>
+                    </tr>
+                </thead>
+                <tbody id="attendanceBody">
+                    <tr>
+                        <td colspan="4" class="empty-state">Memuat data...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Students Tab -->
+        <div class="section" id="tab-students" style="display: none;">
+            <h3>👥 Kelola Siswa</h3>
+
+            <!-- Add Student Form -->
+            <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                <h4 style="margin-bottom: 16px;">➕ Tambah Siswa Baru</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                    <div>
+                        <label
+                            style="display: block; margin-bottom: 6px; color: rgba(255,255,255,0.7); font-size: 14px;">Nama
+                            Lengkap</label>
+                        <input type="text" id="studentName" class="form-input" placeholder="Contoh: Ahmad Fauzi"
+                            style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; background: rgba(255,255,255,0.1); color: #fff;">
+                    </div>
+                    <div>
+                        <label
+                            style="display: block; margin-bottom: 6px; color: rgba(255,255,255,0.7); font-size: 14px;">NIS</label>
+                        <input type="text" id="studentNis" class="form-input" placeholder="Contoh: 12345"
+                            style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; background: rgba(255,255,255,0.1); color: #fff;">
+                    </div>
+                    <div>
+                        <label
+                            style="display: block; margin-bottom: 6px; color: rgba(255,255,255,0.7); font-size: 14px;">Kelas</label>
+                        <input type="text" id="studentClass" class="form-input" placeholder="Contoh: XII IPA 1"
+                            style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; background: rgba(255,255,255,0.1); color: #fff;">
+                    </div>
+                    <div style="display: flex; align-items: flex-end;">
+                        <button class="btn btn-primary" onclick="addStudent()" style="width: 100%;">Tambah
+                            Siswa</button>
+                    </div>
+                </div>
+                <div id="studentMessage" style="margin-top: 12px; padding: 12px; border-radius: 8px; display: none;">
+                </div>
+            </div>
+
+            <!-- Student List -->
+            <h4 style="margin-bottom: 12px;">📋 Daftar Siswa</h4>
+            <table class="attendance-table">
+                <thead>
+                    <tr>
+                        <th>NIS</th>
+                        <th>Nama</th>
+                        <th>Kelas</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="studentsBody">
+                    <tr>
+                        <td colspan="4" class="empty-state">Memuat data...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- QR Tab -->
+        <div class="section" id="tab-qr" style="display: none;">
+            <h3>📱 Generate QR Code</h3>
+            <div class="qr-section">
+                <div>
+                    <p style="color: rgba(255,255,255,0.7); margin-bottom: 16px;">
+                        Generate QR Code untuk siswa melakukan absensi.
+                        QR hanya berlaku selama 5 menit dan hanya bisa dibuat oleh admin.
+                    </p>
+                    <button class="btn btn-primary" onclick="generateQR()">Generate QR Baru</button>
+                </div>
+                <div class="qr-display">
+                    <img id="qrImage" src="" alt="QR Code" style="display: none;">
+                    <div id="qrCodeText" class="qr-code-text" style="display: none;"></div>
+                    <p id="qrTimer" class="qr-timer"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Schedule Tab -->
+        <div class="section" id="tab-schedule" style="display: none;">
+            <h3>📅 Kelola Jadwal Pelajaran</h3>
+            <div class="schedule-edit">
+                <div class="schedule-row" style="font-weight: 600; font-size: 12px; color: rgba(255,255,255,0.5);">
+                    <div>Hari</div>
+                    <div>Jam</div>
+                    <div>Mata Pelajaran</div>
+                    <div>Baju</div>
+                    <div>Aksi</div>
+                </div>
+                <div id="scheduleRows"></div>
+                <button class="btn btn-secondary" onclick="addScheduleRow()" style="margin-top: 12px;">+ Tambah
+                    Jadwal</button>
+            </div>
+        </div>
+
+        <!-- Location Tab -->
+        <div class="section" id="tab-location" style="display: none;">
+            <h3>📍 Lokasi Admin (Untuk Absensi)</h3>
+            <p style="color: rgba(255,255,255,0.7); margin-bottom: 16px;">
+                Atur lokasi admin. Siswa hanya bisa absen dalam radius 20 meter dari lokasi ini.
+            </p>
+            <div class="location-section">
+                <div>
+                    <label style="display: block; margin-bottom: 8px; color: rgba(255,255,255,0.7);">Latitude</label>
+                    <input type="text" id="adminLat" class="location-input" placeholder="Contoh: -6.200000">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 8px; color: rgba(255,255,255,0.7);">Longitude</label>
+                    <input type="text" id="adminLng" class="location-input" placeholder="Contoh: 106.816666">
+                </div>
+            </div>
+            <div style="margin-top: 16px; display: flex; gap: 12px;">
+                <button class="location-btn" onclick="getCurrentLocation()">📍 Dapatkan Lokasi Saat Ini</button>
+                <button class="btn btn-primary" onclick="saveLocation()">💾 Simpan Lokasi</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user || user.role !== 'admin') {
+            window.location.href = 'login.html';
+        }
+
+        let qrInterval = null;
+
+        // Update time
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent =
+                now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // Load attendance
+        async function loadAttendance() {
+            const res = await fetch('/api/attendance/today');
+            const attendance = await res.json();
+
+            document.getElementById('presentCount').textContent = attendance.length;
+
+            const studentsRes = await fetch('/api/students');
+            const students = await studentsRes.json();
+            document.getElementById('totalCount').textContent = students.length;
+
+            const tbody = document.getElementById('attendanceBody');
+            if (attendance.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Belum ada siswa yang absen hari ini</td></tr>';
+            } else {
+                tbody.innerHTML = attendance.map(a => `
+          <tr>
+            <td>
+              <span class="student-photo">${a.name.charAt(0)}</span>
+              ${a.name}
+            </td>
+            <td>${a.class}</td>
+            <td>${a.time_in}</td>
+            <td>${a.verification_method}</td>
+          </tr>
+        `).join('');
+            }
+        }
+
+        // Load students
+        async function loadStudents() {
+            const res = await fetch('/api/students');
+            const students = await res.json();
+
+            const tbody = document.getElementById('studentsBody');
+            if (students.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Belum ada siswa</td></tr>';
+            } else {
+                tbody.innerHTML = students.map(s => `
+                    <tr>
+                        <td>${s.nis}</td>
+                        <td>${s.name}</td>
+                        <td>${s.class}</td>
+                        <td><button class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;" onclick="deleteStudent(${s.id})">Hapus</button></td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // Add student
+        async function addStudent() {
+            const name = document.getElementById('studentName').value.trim();
+            const nis = document.getElementById('studentNis').value.trim();
+            const studentClass = document.getElementById('studentClass').value.trim();
+            const messageEl = document.getElementById('studentMessage');
+
+            if (!name || !nis || !studentClass) {
+                messageEl.textContent = '⚠️ Semua field wajib diisi!';
+                messageEl.style.background = 'rgba(255, 77, 77, 0.2)';
+                messageEl.style.color = '#ff4d4d';
+                messageEl.style.display = 'block';
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/students', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, nis, class: studentClass })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    messageEl.textContent = '✅ ' + data.message;
+                    messageEl.style.background = 'rgba(34, 197, 94, 0.2)';
+                    messageEl.style.color = '#22c55e';
+                    messageEl.style.display = 'block';
+
+                    // Clear form
+                    document.getElementById('studentName').value = '';
+                    document.getElementById('studentNis').value = '';
+                    document.getElementById('studentClass').value = '';
+
+                    // Reload students list
+                    loadStudents();
+                    loadAttendance();
+                } else {
+                    messageEl.textContent = '❌ ' + data.message;
+                    messageEl.style.background = 'rgba(255, 77, 77, 0.2)';
+                    messageEl.style.color = '#ff4d4d';
+                    messageEl.style.display = 'block';
+                }
+            } catch (err) {
+                messageEl.textContent = '❌ Error: ' + err.message;
+                messageEl.style.background = 'rgba(255, 77, 77, 0.2)';
+                messageEl.style.color = '#ff4d4d';
+                messageEl.style.display = 'block';
+            }
+        }
+
+        // Delete student
+        async function deleteStudent(id) {
+            if (!confirm('Yakin ingin menghapus siswa ini?')) return;
+
+            try {
+                const res = await fetch(`/api/students/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) {
+                    loadStudents();
+                    loadAttendance();
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        // Generate QR
+        async function generateQR() {
+            try {
+                const res = await fetch('/api/qr/generate', { method: 'POST' });
+                const data = await res.json();
+
+                if (data.success) {
+                    document.getElementById('qrImage').src = data.qr;
+                    document.getElementById('qrImage').style.display = 'block';
+                    document.getElementById('qrCodeText').textContent = data.code;
+                    document.getElementById('qrCodeText').style.display = 'block';
+
+                    // Countdown timer
+                    const expires = new Date(data.expiresAt).getTime();
+                    if (qrInterval) clearInterval(qrInterval);
+
+                    qrInterval = setInterval(() => {
+                        const now = Date.now();
+                        const remaining = Math.max(0, expires - now);
+                        const minutes = Math.floor(remaining / 60000);
+                        const seconds = Math.floor((remaining % 60000) / 1000);
+                        document.getElementById('qrTimer').textContent =
+                            `Berlaku ${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+                        if (remaining <= 0) {
+                            clearInterval(qrInterval);
+                            document.getElementById('qrTimer').textContent = 'QR Code expired';
+                        }
+                    }, 1000);
+                }
+            } catch (err) {
+                alert('Gagal generate QR: ' + err.message);
+            }
+        }
+
+        // Load schedules
+        async function loadSchedules() {
+            const res = await fetch('/api/schedule');
+            const schedules = await res.json();
+
+            const container = document.getElementById('scheduleRows');
+            container.innerHTML = schedules.map(s => `
+        <div class="schedule-row">
+          <select value="${s.day}">
+            <option value="Senin" ${s.day === 'Senin' ? 'selected' : ''}>Senin</option>
+            <option value="Selasa" ${s.day === 'Selasa' ? 'selected' : ''}>Selasa</option>
+            <option value="Rabu" ${s.day === 'Rabu' ? 'selected' : ''}>Rabu</option>
+            <option value="Kamis" ${s.day === 'Kamis' ? 'selected' : ''}>Kamis</option>
+            <option value="Jumat" ${s.day === 'Jumat' ? 'selected' : ''}>Jumat</option>
+          </select>
+          <input type="text" value="${s.time}" placeholder="07:00-07:45">
+          <input type="text" value="${s.subject}" placeholder="Mata pelajaran">
+          <input type="text" value="${s.uniform}" placeholder="Baju yang digunakan">
+          <button class="btn btn-danger" onclick="updateSchedule(${s.id}, this)">Simpan</button>
+        </div>
+      `).join('');
+        }
+
+        async function updateSchedule(id, btn) {
+            const row = btn.parentElement;
+            const day = row.querySelector('select').value;
+            const time = row.querySelectorAll('input')[0].value;
+            const subject = row.querySelectorAll('input')[1].value;
+            const uniform = row.querySelectorAll('input')[2].value;
+
+            try {
+                const res = await fetch(`/api/schedule/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ day, time, subject, uniform })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Jadwal diperbarui!');
+                }
+            } catch (err) {
+                alert('Gagal update: ' + err.message);
+            }
+        }
+
+        function addScheduleRow() {
+            const container = document.getElementById('scheduleRows');
+            const div = document.createElement('div');
+            div.className = 'schedule-row';
+            div.innerHTML = `
+        <select>
+          <option value="Senin">Senin</option>
+          <option value="Selasa">Selasa</option>
+          <option value="Rabu">Rabu</option>
+          <option value="Kamis">Kamis</option>
+          <option value="Jumat">Jumat</option>
+        </select>
+        <input type="text" placeholder="07:00-07:45">
+        <input type="text" placeholder="Mata pelajaran">
+        <input type="text" placeholder="Baju yang digunakan">
+        <button class="btn btn-primary" onclick="alert('Fitur tambah jadwal akan segera hadir')">Tambah</button>
+      `;
+            container.appendChild(div);
+        }
+
+        // Load admin location
+        async function loadAdminLocation() {
+            const res = await fetch('/api/admin/location');
+            const loc = await res.json();
+            document.getElementById('adminLat').value = loc.lat;
+            document.getElementById('adminLng').value = loc.lng;
+        }
+
+        function getCurrentLocation() {
+            if (!navigator.geolocation) {
+                alert('Geolocation tidak didukung');
+                return;
+            }
+            navigator.geolocation.getCurrentPosition((pos) => {
+                document.getElementById('adminLat').value = pos.coords.latitude;
+                document.getElementById('adminLng').value = pos.coords.longitude;
+            }, (err) => {
+                alert('Gagal mendapatkan lokasi: ' + err.message);
+            });
+        }
+
+        async function saveLocation() {
+            const lat = parseFloat(document.getElementById('adminLat').value);
+            const lng = parseFloat(document.getElementById('adminLng').value);
+
+            if (isNaN(lat) || isNaN(lng)) {
+                alert('Masukkan koordinat yang valid');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/admin/location', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ lat, lng })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Lokasi admin disimpan!');
+                }
+            } catch (err) {
+                alert('Gagal menyimpan: ' + err.message);
+            }
+        }
+
+        // Tab switching
+        function showTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tab).style.display = 'block';
+
+            if (tab === 'attendance') loadAttendance();
+            if (tab === 'students') loadStudents();
+            if (tab === 'schedule') loadSchedules();
+            if (tab === 'location') loadAdminLocation();
+        }
+
+        // Initial load
+        loadAttendance();
+    </script>
+</body>
+
+</html>

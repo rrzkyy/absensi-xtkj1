@@ -1,0 +1,4 @@
+node_modules/
+absensi.db
+*.db
+.DS_Store
